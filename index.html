@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto — 3m Box Heatmap (UTC)</title>
+<title>Crypto — Multi-Interval Box Heatmap (UTC)</title>
 <style>
   :root{
     --bg:#0a0e14;
@@ -15,39 +15,40 @@
     --green:#0ecb81;
     --red:#f6465d;
     --amber:#f0b90b;
+    --flat:#3a4451;
   }
   *{ box-sizing:border-box; }
   html,body{
     margin:0; padding:0; background:var(--bg); color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   }
-  .app{ max-width:1200px; margin:0 auto; padding:0 0 24px; }
+  .app{ max-width:1400px; margin:0 auto; padding:0 0 24px; }
 
   header{
     display:flex; align-items:center; justify-content:space-between;
-    padding:20px 24px; border-bottom:1px solid var(--border);
-    flex-wrap:wrap; gap:12px;
+    padding:7px 14px; border-bottom:1px solid var(--border);
+    flex-wrap:nowrap; gap:10px; overflow-x:auto;
   }
-  .title-block h1{ margin:0; font-size:21px; font-weight:700; letter-spacing:-0.02em; }
+  .title-block{ display:flex; align-items:baseline; gap:8px; flex-shrink:0; }
+  .title-block h1{ margin:0; font-size:14px; font-weight:700; letter-spacing:-0.02em; white-space:nowrap; }
   .title-block h1 span{ color:var(--muted); font-weight:500; }
-  .title-block .subtitle{ color:var(--muted); font-size:12px; margin-top:3px; }
 
-  .stats{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .stats{ display:flex; align-items:center; gap:9px; flex-wrap:nowrap; flex-shrink:0; }
   .price{
     font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
-    font-size:23px; font-weight:600; min-width:110px;
+    font-size:14px; font-weight:600; min-width:0; white-space:nowrap;
   }
   .change{
     font-family:"SFMono-Regular",Consolas,monospace;
-    font-size:13px; font-weight:600; padding:4px 9px; border-radius:5px;
-    background:rgba(255,255,255,0.04);
+    font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px;
+    background:rgba(255,255,255,0.04); white-space:nowrap;
   }
   .change.up{ color:var(--green); }
   .change.down{ color:var(--red); }
-  .range{ font-family:"SFMono-Regular",Consolas,monospace; font-size:11px; color:var(--muted); }
+  .range{ font-family:"SFMono-Regular",Consolas,monospace; font-size:10px; color:var(--muted); white-space:nowrap; }
 
-  .status{ display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
-  .dot{ width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+  .status{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); white-space:nowrap; }
+  .dot{ width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; }
   .dot.live{ background:var(--green); animation:pulse 1.8s infinite; }
   .dot.warn{ background:var(--amber); }
   .dot.down{ background:var(--red); }
@@ -58,68 +59,95 @@
   }
 
   .jump-btn{
-    font-size:11px; color:var(--muted); background:var(--panel2);
-    border:1px solid var(--border); border-radius:5px; padding:5px 10px;
-    cursor:pointer; transition:border-color .15s, color .15s;
+    font-size:10px; color:var(--muted); background:var(--panel2);
+    border:1px solid var(--border); border-radius:4px; padding:3px 7px;
+    cursor:pointer; transition:border-color .15s, color .15s; flex-shrink:0;
   }
   .jump-btn:hover{ border-color:#33404d; color:var(--text); }
+  #dayPicker{ width:118px; }
 
   .coin-bar{
-    display:flex; align-items:center; gap:8px; padding:14px 24px 0;
+    display:flex; align-items:center; gap:6px; padding:6px 14px 0;
     flex-wrap:wrap;
   }
   .coin-search{
-    background:var(--panel2); border:1px solid var(--border); border-radius:6px;
-    color:var(--text); font-size:12px; padding:7px 10px; width:150px;
+    background:var(--panel2); border:1px solid var(--border); border-radius:5px;
+    color:var(--text); font-size:11px; padding:4px 8px; width:130px;
     font-family:inherit; outline:none; transition:border-color .15s;
   }
   .coin-search:focus{ border-color:#33404d; }
   .coin-search::placeholder{ color:var(--muted); }
   .coin-tabs{
-    display:flex; align-items:center; gap:6px; flex-wrap:wrap; max-height:150px;
+    display:flex; align-items:center; gap:4px; flex-wrap:wrap; max-height:100px;
     overflow-y:auto; padding:2px 0;
   }
   .coin-tab{
-    font-size:12px; font-weight:600; color:var(--muted); background:var(--panel2);
-    border:1px solid var(--border); border-radius:6px; padding:6px 12px;
+    font-size:11px; font-weight:600; color:var(--muted); background:var(--panel2);
+    border:1px solid var(--border); border-radius:5px; padding:3px 8px;
     cursor:pointer; transition:border-color .15s, color .15s, background .15s;
     font-family:"SFMono-Regular",Consolas,monospace; white-space:nowrap;
   }
   .coin-tab:hover{ border-color:#33404d; color:var(--text); }
   .coin-tab.active{ background:rgba(14,203,129,0.12); border-color:var(--green); color:var(--green); }
-  .coin-count{ color:var(--muted); font-size:11px; margin-left:4px; }
-  .coin-select-mobile{ display:none; }
+  .coin-count{ color:var(--muted); font-size:10px; margin-left:4px; }
 
-  .legend{ display:flex; align-items:center; gap:10px; padding:12px 24px; color:var(--muted); font-size:11px; flex-wrap:wrap; }
+  .legend{ display:flex; align-items:center; gap:8px; padding:6px 14px; color:var(--muted); font-size:10px; flex-wrap:wrap; }
   .legend-bar{
     width:130px; height:7px; border-radius:4px;
     background:linear-gradient(to right, hsl(351,72%,56%), hsl(351,72%,14%) 42%, #11161d 50%, hsl(152,65%,14%) 58%, hsl(152,65%,56%));
   }
   .legend-swatch{ width:12px; height:12px; border-radius:3px; background:#10151c; border:1px dashed #232c36; display:inline-block; vertical-align:-2px; }
+  .legend-swatch.flat{ background:var(--flat); border:none; }
 
-  .heatmap-wrap{
-    margin:6px 24px 4px; border:1px solid var(--border); border-radius:8px;
-    background:var(--panel); padding:16px; overflow-x:auto;
+  .grids-wrap{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    padding:8px 14px;
   }
+  @media (max-width: 820px){
+    .grids-wrap{ grid-template-columns: 1fr; }
+  }
+
+  .grid-panel{
+    border:1px solid var(--border); border-radius:8px; background:var(--panel);
+    padding:8px; overflow-x:auto;
+  }
+  .grid-panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:6px; flex-wrap:wrap; gap:6px;
+  }
+  .grid-panel-title{
+    font-size:11px; font-weight:700; color:var(--text);
+    font-family:"SFMono-Regular",Consolas,monospace;
+  }
+  .grid-panel-title span{ color:var(--muted); font-weight:500; margin-left:4px; }
+  .box-count{
+    display:flex; align-items:center; gap:8px;
+    font-family:"SFMono-Regular",Consolas,monospace; font-size:9.5px; color:var(--muted);
+  }
+  .box-count b{ font-weight:700; }
+  .box-count .bc-green b{ color:var(--green); }
+  .box-count .bc-red b{ color:var(--red); }
+  .box-count .bc-flat b{ color:var(--muted); }
+
   .heatmap{
     display:grid;
-    grid-template-columns: 52px repeat(20, minmax(26px, 1fr));
-    grid-template-rows: 18px repeat(24, 26px);
-    gap:3px;
-    min-width:780px;
+    gap:1px;
+    width:max-content;
   }
-  .col-head{ font:10px/18px monospace; color:var(--muted); text-align:center; }
+  .col-head{ font:6px/9px monospace; color:var(--muted); text-align:center; }
   .row-head{
-    font:10px monospace; color:var(--muted);
-    display:flex; align-items:center; justify-content:flex-end; padding-right:6px;
+    font:6px monospace; color:var(--muted);
+    display:flex; align-items:center; justify-content:flex-end; padding-right:2px;
   }
   .cell{
-    border-radius:4px; background:#12181f; cursor:pointer;
+    border-radius:2px; background:#12181f; cursor:pointer;
     transition:transform .08s ease, box-shadow .08s ease;
     position:relative;
   }
   .cell.future{ background:#10151c; border:1px dashed #212a34; }
-  .cell.hovered{ transform:scale(1.2); z-index:5; box-shadow:0 0 0 2px #ffffff; }
+  .cell.hovered{ transform:scale(1.6); z-index:5; box-shadow:0 0 0 2px #ffffff; }
   .cell.current{ box-shadow:0 0 0 2px var(--amber); animation:cellpulse 1.6s infinite; }
   @keyframes cellpulse{
     0%{ box-shadow:0 0 0 2px rgba(240,185,11,0.9); }
@@ -127,7 +155,7 @@
     100%{ box-shadow:0 0 0 0 rgba(240,185,11,0); }
   }
 
-  .hint{ padding:0 24px; margin-top:12px; color:var(--muted); font-size:11px; }
+  .hint{ padding:0 14px; margin-top:8px; color:var(--muted); font-size:10px; }
 
   .tooltip{
     display:none; position:fixed; z-index:50; pointer-events:none;
@@ -146,6 +174,9 @@
     .coin-bar{ flex-direction:column; align-items:stretch; }
     .coin-search{ width:100%; }
   }
+  @media (max-width: 700px){
+    header{ flex-wrap:wrap; }
+  }
 </style>
 </head>
 <body>
@@ -153,13 +184,13 @@
   <header>
     <div class="title-block">
       <h1>BTC<span>/USDT</span></h1>
-      <div class="subtitle">3‑min box grid · today, UTC 00:00 → 24:00 · 480 boxes (24 × 20)</div>
     </div>
     <div class="stats">
       <div class="price" id="livePrice">--</div>
       <div class="change" id="dayChange">--</div>
       <div class="range" id="dayRange">Range --</div>
-      <button class="jump-btn" id="jumpNow">Jump to current box</button>
+      <input type="date" id="dayPicker" class="jump-btn" style="font-family:inherit; color-scheme:dark;">
+      <button class="jump-btn" id="jumpToday">Today</button>
       <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></div>
     </div>
   </header>
@@ -175,48 +206,76 @@
     <div class="legend-bar"></div>
     <span>Up</span>
     <span style="margin-left:10px;"><span class="legend-swatch"></span> not started yet</span>
-    <span style="margin-left:6px;">— color intensity = size of that 3‑min move</span>
+    <span style="margin-left:6px;"><span class="legend-swatch flat"></span> flat / no trades</span>
+    <span style="margin-left:6px;">— color intensity = size of that box's move</span>
   </div>
 
-  <div class="heatmap-wrap">
-    <div class="heatmap" id="heatmapGrid"></div>
-  </div>
-  <div class="hint">Rows = UTC hour, columns = minute within the hour (00,03,…,57). Hover a box for its exact OHLC + volume. Boxes fill in live as the day progresses.</div>
+  <div class="grids-wrap" id="gridsWrap"></div>
+
+  <div class="hint">Each grid's rows = UTC hour (00–23). Columns = minute-slot within the hour, sized to that grid's interval. Hover a box for exact OHLC + volume. Boxes fill in live as the day progresses.</div>
 </div>
 <div class="tooltip" id="tooltip"></div>
 
 <script>
 (function(){
+  // ---- Interval definitions ----
+  const INTERVALS = [
+    { key:'1m', label:'1m',  ms:1*60*1000,  binance:'1m' },
+    { key:'2m', label:'2m',  ms:2*60*1000,  binance:'1m' }, // Binance has no native 2m kline stream; built by merging pairs of 1m candles
+    { key:'3m', label:'3m',  ms:3*60*1000,  binance:'3m' },
+    { key:'4m', label:'4m',  ms:4*60*1000,  binance:'1m' }, // built by merging four 1m candles
+    { key:'5m', label:'5m',  ms:5*60*1000,  binance:'5m' }
+  ];
+  // Binance stream intervals we actually need to open: 1m, 3m, 5m (2m and 4m derive from 1m)
+  const STREAM_INTERVALS = ['1m','3m','5m'];
+
   let SYMBOL = 'btcusdt';
-  const INTERVAL = '3m';
-  const INTERVAL_MS = 3 * 60 * 1000;
-  const SLOTS = (24*60)/3; // 480
-  const ROWS = 24, COLS = 20;
+  const ROWS = 24;
 
-  let dayStartUTC = utcDayStartMs();
-  let candles = new Array(SLOTS).fill(null);
-  let maxAbsPct = 0.03;
-  let cellEls = [];
-  let ws = null, reconnectAttempts = 0, pollTimer = null;
-  let allSymbols = [];       // all USDT pairs from Binance exchangeInfo
-  let loadToken = 0;         // guards against stale async loads when switching coins fast
+  let viewDateStr = todayUTCStr();
+  let isLiveDay = true;
+  let dayStartUTC = utcDayStartMs(viewDateStr);
 
-  const grid = document.getElementById('heatmapGrid');
+  // Per-interval state
+  const state = {}; // state[key] = { slots, cols, candles[], cellEls[], oneMinBuffer[] (for 2m/4m only) }
+  INTERVALS.forEach(iv => {
+    const slots = Math.round((24*60*60*1000) / iv.ms);
+    state[iv.key] = {
+      def: iv,
+      slots,
+      cols: slots / ROWS,
+      candles: new Array(slots).fill(null),
+      cellEls: [],
+      greenEl: null, redEl: null, flatEl: null
+    };
+  });
+
+  let oneMinCandles = new Array(1440).fill(null); // raw 1m candles used to build 2m/4m aggregates
+  let maxAbsPct = 0.03; // shared scale reference, recomputed per render pass per-grid actually (see renderGrid)
+  let sockets = {}; // one WS per stream interval (1m,3m,5m), each also carries @trade for the 1m one
+  let reconnectAttempts = 0, pollTimer = null;
+  let allSymbols = [];
+  let loadToken = 0;
+
+  const gridsWrap = document.getElementById('gridsWrap');
   const tooltip = document.getElementById('tooltip');
   const livePriceEl = document.getElementById('livePrice');
   const dayChangeEl = document.getElementById('dayChange');
   const dayRangeEl = document.getElementById('dayRange');
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
-  const jumpBtn = document.getElementById('jumpNow');
   const titleH1 = document.querySelector('.title-block h1');
-  const subtitleEl = document.querySelector('.title-block .subtitle');
   const coinTabsEl = document.getElementById('coinTabs');
   const coinSearchEl = document.getElementById('coinSearch');
   const coinCountEl = document.getElementById('coinCount');
+  const dayPickerEl = document.getElementById('dayPicker');
+  const jumpTodayBtn = document.getElementById('jumpToday');
 
-  function utcDayStartMs(){
-    const iso = new Date().toISOString().slice(0,10);
+  function todayUTCStr(){
+    return new Date().toISOString().slice(0,10);
+  }
+  function utcDayStartMs(dateStr){
+    const iso = dateStr || todayUTCStr();
     return Date.parse(iso + 'T00:00:00.000Z');
   }
   function fmtPrice(n){
@@ -226,14 +285,191 @@
     const d = new Date(ms);
     return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0') + ' UTC';
   }
-  function currentSlotIndex(){
-    return Math.floor((Date.now() - dayStartUTC) / INTERVAL_MS);
+  function currentSlotIndex(slotMs){
+    return Math.floor((Date.now() - dayStartUTC) / slotMs);
   }
 
   function setHeaderForSymbol(sym){
     const base = sym.replace(/usdt$/i, '').toUpperCase();
     titleH1.innerHTML = `${base}<span>/USDT</span>`;
-    subtitleEl.textContent = '3‑min box grid · today, UTC 00:00 → 24:00 · 480 boxes (24 × 20)';
+  }
+
+  // ---- Build DOM for all 5 grids ----
+  function buildAllGrids(){
+    gridsWrap.innerHTML = '';
+    INTERVALS.forEach(iv => {
+      const s = state[iv.key];
+      const panel = document.createElement('div');
+      panel.className = 'grid-panel';
+      panel.innerHTML = `
+        <div class="grid-panel-head">
+          <div class="grid-panel-title">${iv.label}<span>box grid · ${s.slots} boxes (24 × ${s.cols})</span></div>
+          <div class="box-count">
+            <span class="bc-green">Green: <b id="green-${iv.key}">0</b></span>
+            <span class="bc-red">Red: <b id="red-${iv.key}">0</b></span>
+            <span class="bc-flat">Flat: <b id="flat-${iv.key}">0</b></span>
+          </div>
+        </div>
+        <div class="heatmap" id="heatmap-${iv.key}" style="grid-template-columns: 20px repeat(${s.cols}, ${gridBoxPx(s.cols)}px); grid-template-rows: 9px repeat(${ROWS}, ${gridBoxPx(s.cols)}px);"></div>
+      `;
+      gridsWrap.appendChild(panel);
+      s.greenEl = panel.querySelector(`#green-${iv.key}`);
+      s.redEl = panel.querySelector(`#red-${iv.key}`);
+      s.flatEl = panel.querySelector(`#flat-${iv.key}`);
+
+      const grid = panel.querySelector(`#heatmap-${iv.key}`);
+      let html = '<div></div>';
+      for(let c=0;c<s.cols;c++){
+        const minuteLabel = Math.round(c * (iv.ms/60000));
+        html += `<div class="col-head">${c % Math.max(1,Math.round(s.cols/10)) === 0 ? String(minuteLabel).padStart(2,'0') : ''}</div>`;
+      }
+      for(let r=0;r<ROWS;r++){
+        html += `<div class="row-head">${String(r).padStart(2,'0')}</div>`;
+        for(let c=0;c<s.cols;c++){
+          const idx = r*s.cols + c;
+          html += `<div class="cell future" data-idx="${idx}" data-iv="${iv.key}"></div>`;
+        }
+      }
+      grid.innerHTML = html;
+      s.cellEls = Array.from(grid.querySelectorAll('.cell'));
+
+      grid.addEventListener('mousemove', onCellMouseMove);
+      grid.addEventListener('mouseover', onCellMouseOver);
+      grid.addEventListener('mouseleave', () => { s.cellEls.forEach(el=>el.classList.remove('hovered')); hideTooltip(); });
+    });
+  }
+
+  // Small box size that still fits ~60 columns (1m) in a half-width (2-col) panel without scrolling
+  function gridBoxPx(cols){
+    if(cols <= 12) return 13;   // 5m
+    if(cols <= 15) return 11;   // 4m
+    if(cols <= 20) return 9;    // 3m
+    if(cols <= 30) return 7;    // 2m
+    return 5;                   // 1m (60 cols)
+  }
+
+  function onCellMouseMove(e){
+    const cellEl = e.target.closest('.cell');
+    if(!cellEl){ hideTooltip(); return; }
+    const idx = +cellEl.dataset.idx;
+    const ivKey = cellEl.dataset.iv;
+    const s = state[ivKey];
+    const slotStart = dayStartUTC + idx * s.def.ms;
+    const c = s.candles[idx];
+    if(c){
+      const pct = (c.close - c.open) / c.open * 100;
+      showTooltip(e.clientX, e.clientY, `
+        <div class="tt-time">${s.def.label} · ${fmtUTC(slotStart)} → ${fmtUTC(slotStart+s.def.ms)}${c.isFinal===false?' · live':''}</div>
+        <div class="tt-row"><span>O</span><b>${fmtPrice(c.open)}</b></div>
+        <div class="tt-row"><span>H</span><b>${fmtPrice(c.high)}</b></div>
+        <div class="tt-row"><span>L</span><b>${fmtPrice(c.low)}</b></div>
+        <div class="tt-row"><span>C</span><b>${fmtPrice(c.close)}</b></div>
+        <div class="tt-row"><span>Vol</span><b>${c.volume.toFixed(3)} ${SYMBOL.replace(/usdt$/i,'').toUpperCase()}</b></div>
+        <div class="tt-pct ${pct>=0?'up':'down'}">${pct>=0?'+':''}${pct.toFixed(3)}%</div>
+      `);
+    } else {
+      showTooltip(e.clientX, e.clientY, `
+        <div class="tt-time">${s.def.label} · ${fmtUTC(slotStart)} → ${fmtUTC(slotStart+s.def.ms)}</div>
+        <div class="tt-row" style="color:var(--muted)">Not started yet</div>
+      `);
+    }
+  }
+  function onCellMouseOver(e){
+    const cellEl = e.target.closest('.cell');
+    const ivKey = cellEl ? cellEl.dataset.iv : null;
+    if(ivKey){
+      state[ivKey].cellEls.forEach(el => el.classList.remove('hovered'));
+      cellEl.classList.add('hovered');
+    }
+  }
+
+  function showTooltip(clientX, clientY, html){
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    const ttW = 190, ttH = 150;
+    let left = clientX + 16, top = clientY + 16;
+    if(left + ttW > window.innerWidth) left = clientX - ttW - 16;
+    if(top + ttH > window.innerHeight) top = clientY - ttH - 16;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
+  function hideTooltip(){ tooltip.style.display = 'none'; }
+
+  function colorFor(open, close, localMax){
+    if(close === open) return 'var(--flat)';
+    const pct = (close - open) / open * 100;
+    const t = Math.min(Math.abs(pct) / localMax, 1);
+    const light = 14 + t * 44;
+    return pct >= 0 ? `hsl(152,65%,${light}%)` : `hsl(351,72%,${light}%)`;
+  }
+
+  // ---- Render one grid ----
+  function renderGrid(ivKey){
+    const s = state[ivKey];
+    let localMax = 0.03;
+    for(const c of s.candles){
+      if(!c) continue;
+      const p = Math.abs((c.close - c.open) / c.open * 100);
+      if(p > localMax) localMax = p;
+    }
+    const nowSlot = currentSlotIndex(s.def.ms);
+    let greenN = 0, redN = 0, flatN = 0;
+    for(let idx=0; idx<s.slots; idx++){
+      const el = s.cellEls[idx];
+      const c = s.candles[idx];
+      el.classList.remove('current');
+      if(!c){
+        el.classList.add('future');
+        el.style.background = '';
+      } else {
+        el.classList.remove('future');
+        el.style.background = colorFor(c.open, c.close, localMax);
+        if(idx === nowSlot && c.isFinal === false) el.classList.add('current');
+        if(c.volume === 0 || c.close === c.open) flatN++;
+        else if(c.close > c.open) greenN++;
+        else redN++;
+      }
+    }
+    if(s.greenEl) s.greenEl.textContent = greenN;
+    if(s.redEl) s.redEl.textContent = redN;
+    if(s.flatEl) s.flatEl.textContent = flatN;
+  }
+
+  function renderAll(){
+    let lo = Infinity, hi = -Infinity;
+    const s3 = state['3m'];
+    for(const c of s3.candles){
+      if(!c) continue;
+      if(c.low < lo) lo = c.low;
+      if(c.high > hi) hi = c.high;
+    }
+    if(lo !== Infinity) dayRangeEl.textContent = `Range ${fmtPrice(lo)} – ${fmtPrice(hi)}`;
+    INTERVALS.forEach(iv => renderGrid(iv.key));
+  }
+
+  // ---- Aggregation: build 2m/4m candles from 1m candles ----
+  function rebuildAggregates(){
+    aggregateFrom1m('2m', 2);
+    aggregateFrom1m('4m', 4);
+  }
+  function aggregateFrom1m(key, factor){
+    const s = state[key];
+    for(let idx=0; idx<s.slots; idx++){
+      const start = idx*factor;
+      let group = [];
+      for(let k=0;k<factor;k++){
+        const c = oneMinCandles[start+k];
+        if(c) group.push(c);
+      }
+      if(group.length === 0){ s.candles[idx] = null; continue; }
+      const open = group[0].open;
+      const close = group[group.length-1].close;
+      const high = Math.max(...group.map(g=>g.high));
+      const low = Math.min(...group.map(g=>g.low));
+      const volume = group.reduce((a,g)=>a+g.volume,0);
+      const isFinal = group.length === factor ? group[group.length-1].isFinal : (isLiveDay ? false : true);
+      s.candles[idx] = { open, high, low, close, volume, isFinal };
+    }
   }
 
   function renderCoinTabs(filter){
@@ -273,10 +509,7 @@
           .filter(s => s.status === 'TRADING' && s.quoteAsset === 'USDT' && s.isSpotTradingAllowed)
           .map(s => s.symbol)
       );
-
-      // Fetch 24h volume, sort major coins first, and drop anything below
-      // the minimum daily volume threshold (~36 Cr 90 Lakh INR / $44.4M USD).
-      const MIN_VOLUME_USDT = 44400000;
+      const MIN_VOLUME_USDT = 1200000; // ~10 Cr INR
       let volMap = null;
       try{
         const volRes = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -285,7 +518,6 @@
       }catch(e){
         console.warn('24hr volume fetch failed, falling back to alphabetical order:', e);
       }
-
       let symbols = [...tradable];
       if(volMap){
         symbols = symbols.filter(s => (volMap.get(s) || 0) >= MIN_VOLUME_USDT);
@@ -293,7 +525,6 @@
       } else {
         symbols.sort();
       }
-
       allSymbols = symbols.map(s => s.toLowerCase());
       if(!allSymbols.includes(SYMBOL) && allSymbols.length) SYMBOL = allSymbols[0];
       renderCoinTabs('');
@@ -309,26 +540,17 @@
     coinSearchEl.value = '';
     renderCoinTabs('');
     setHeaderForSymbol(SYMBOL);
-
-    // tear down existing connections
-    clearPoll();
-    reconnectAttempts = 0;
-    if(ws){
-      try{ ws.onclose = null; ws.onerror = null; ws.close(); }catch(e){}
-      ws = null;
-    }
-
+    teardownSockets();
     setStatus('connecting');
     livePriceEl.textContent = '--';
     dayChangeEl.textContent = '--';
     dayChangeEl.className = 'change';
     dayRangeEl.textContent = 'Range --';
-
     try{
-      await fetchHistory();
-      if(myToken !== loadToken) return; // a newer switch happened while we awaited
+      await fetchHistoryAll();
+      if(myToken !== loadToken) return;
       renderAll();
-      connectWS();
+      if(isLiveDay) connectAllWS(); else { statusDot.className='dot'; statusText.textContent='Viewing past day (static)'; }
     }catch(e){
       if(myToken !== loadToken) return;
       setStatus('disconnected');
@@ -336,118 +558,51 @@
     }
   }
 
-  function buildGrid(){
-    let html = '<div></div>';
-    for(let c=0;c<COLS;c++) html += `<div class="col-head">${String(c*3).padStart(2,'0')}</div>`;
-    for(let r=0;r<ROWS;r++){
-      html += `<div class="row-head">${String(r).padStart(2,'0')}:00</div>`;
-      for(let c=0;c<COLS;c++){
-        const idx = r*COLS + c;
-        html += `<div class="cell future" data-idx="${idx}"></div>`;
-      }
-    }
-    grid.innerHTML = html;
-    cellEls = Array.from(grid.querySelectorAll('.cell'));
-  }
-
-  function colorFor(open, close){
-    const pct = (close - open) / open * 100;
-    const t = Math.min(Math.abs(pct) / maxAbsPct, 1);
-    const light = 14 + t * 44;
-    return pct >= 0 ? `hsl(152,65%,${light}%)` : `hsl(351,72%,${light}%)`;
-  }
-
-  function renderAll(){
-    let lo = Infinity, hi = -Infinity, maxPct = 0.03;
-    for(const c of candles){
-      if(!c) continue;
-      if(c.low < lo) lo = c.low;
-      if(c.high > hi) hi = c.high;
-      const p = Math.abs((c.close - c.open) / c.open * 100);
-      if(p > maxPct) maxPct = p;
-    }
-    maxAbsPct = maxPct;
-    if(lo !== Infinity) dayRangeEl.textContent = `Range ${fmtPrice(lo)} – ${fmtPrice(hi)}`;
-
-    const nowSlot = currentSlotIndex();
-    for(let idx=0; idx<SLOTS; idx++){
-      const el = cellEls[idx];
-      const c = candles[idx];
-      el.classList.remove('current');
-      if(!c){
-        el.classList.add('future');
-        el.style.background = '';
+  async function switchDate(dateStr){
+    const myToken = ++loadToken;
+    viewDateStr = dateStr;
+    isLiveDay = (viewDateStr === todayUTCStr());
+    dayPickerEl.value = viewDateStr;
+    teardownSockets();
+    setStatus('connecting');
+    dayChangeEl.textContent = '--';
+    dayChangeEl.className = 'change';
+    dayRangeEl.textContent = 'Range --';
+    try{
+      await fetchHistoryAll();
+      if(myToken !== loadToken) return;
+      renderAll();
+      if(isLiveDay){
+        connectAllWS();
       } else {
-        el.classList.remove('future');
-        el.style.background = colorFor(c.open, c.close);
-        if(idx === nowSlot && c.isFinal === false) el.classList.add('current');
+        statusDot.className = 'dot';
+        statusText.textContent = 'Viewing past day (static)';
+        const lastFilled = [...state['3m'].candles].reverse().find(c => c);
+        if(lastFilled) livePriceEl.textContent = fmtPrice(lastFilled.close);
       }
+    }catch(e){
+      if(myToken !== loadToken) return;
+      setStatus('disconnected');
+      console.error('Date switch failed:', e);
     }
   }
 
-  function showTooltip(clientX, clientY, html){
-    tooltip.innerHTML = html;
-    tooltip.style.display = 'block';
-    const ttW = 190, ttH = 150;
-    let left = clientX + 16, top = clientY + 16;
-    if(left + ttW > window.innerWidth) left = clientX - ttW - 16;
-    if(top + ttH > window.innerHeight) top = clientY - ttH - 16;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top = top + 'px';
-  }
-  function hideTooltip(){ tooltip.style.display = 'none'; }
+  dayPickerEl.addEventListener('change', () => { if(dayPickerEl.value) switchDate(dayPickerEl.value); });
+  jumpTodayBtn.addEventListener('click', () => { if(!isLiveDay) switchDate(todayUTCStr()); });
 
-  grid.addEventListener('mousemove', (e) => {
-    const cellEl = e.target.closest('.cell');
-    if(!cellEl){ hideTooltip(); return; }
-    const idx = +cellEl.dataset.idx;
-    const slotStart = dayStartUTC + idx * INTERVAL_MS;
-    const c = candles[idx];
-    if(c){
-      const pct = (c.close - c.open) / c.open * 100;
-      showTooltip(e.clientX, e.clientY, `
-        <div class="tt-time">${fmtUTC(slotStart)} → ${fmtUTC(slotStart+INTERVAL_MS)}${c.isFinal===false?' · live':''}</div>
-        <div class="tt-row"><span>O</span><b>${fmtPrice(c.open)}</b></div>
-        <div class="tt-row"><span>H</span><b>${fmtPrice(c.high)}</b></div>
-        <div class="tt-row"><span>L</span><b>${fmtPrice(c.low)}</b></div>
-        <div class="tt-row"><span>C</span><b>${fmtPrice(c.close)}</b></div>
-        <div class="tt-row"><span>Vol</span><b>${c.volume.toFixed(3)} BTC</b></div>
-        <div class="tt-pct ${pct>=0?'up':'down'}">${pct>=0?'+':''}${pct.toFixed(3)}%</div>
-      `);
-    } else {
-      showTooltip(e.clientX, e.clientY, `
-        <div class="tt-time">${fmtUTC(slotStart)} → ${fmtUTC(slotStart+INTERVAL_MS)}</div>
-        <div class="tt-row" style="color:var(--muted)">Not started yet</div>
-      `);
-    }
-  });
-  grid.addEventListener('mouseover', (e) => {
-    const cellEl = e.target.closest('.cell');
-    cellEls.forEach(el => el.classList.remove('hovered'));
-    if(cellEl) cellEl.classList.add('hovered');
-  });
-  grid.addEventListener('mouseleave', () => {
-    cellEls.forEach(el => el.classList.remove('hovered'));
-    hideTooltip();
-  });
-
-  jumpBtn.addEventListener('click', () => {
-    const idx = Math.min(currentSlotIndex(), SLOTS-1);
-    if(cellEls[idx]) cellEls[idx].scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
-  });
-
-  function setStatus(state){
+  function setStatus(state_){
     statusDot.className = 'dot';
-    if(state === 'live'){ statusDot.classList.add('live'); statusText.textContent = 'Live'; }
-    else if(state === 'reconnecting'){ statusDot.classList.add('warn'); statusText.textContent = 'Reconnecting…'; }
-    else if(state === 'polling'){ statusDot.classList.add('warn'); statusText.textContent = 'Live (fallback polling)'; }
-    else if(state === 'connecting'){ statusText.textContent = 'Connecting…'; }
+    if(state_ === 'live'){ statusDot.classList.add('live'); statusText.textContent = 'Live'; }
+    else if(state_ === 'reconnecting'){ statusDot.classList.add('warn'); statusText.textContent = 'Reconnecting…'; }
+    else if(state_ === 'polling'){ statusDot.classList.add('warn'); statusText.textContent = 'Live (fallback polling)'; }
+    else if(state_ === 'connecting'){ statusText.textContent = 'Connecting…'; }
     else { statusDot.classList.add('down'); statusText.textContent = 'Disconnected'; }
   }
 
   function updateHeaderPrice(price){
     livePriceEl.textContent = fmtPrice(price);
-    const firstFilled = candles.find(c => c);
+    const s3 = state['3m'];
+    const firstFilled = s3.candles.find(c => c);
     if(firstFilled){
       const pct = (price - firstFilled.open) / firstFilled.open * 100;
       dayChangeEl.textContent = (pct>=0?'+':'') + pct.toFixed(2) + '% today';
@@ -455,46 +610,98 @@
     }
   }
 
-  async function fetchHistory(){
-    dayStartUTC = utcDayStartMs();
-    candles = new Array(SLOTS).fill(null);
+  // ---- History fetch for all native intervals + 1m (for aggregates) ----
+  async function fetchHistoryAll(){
+    dayStartUTC = utcDayStartMs(viewDateStr);
     const now = Date.now();
-    const endTime = Math.min(now, dayStartUTC + SLOTS*INTERVAL_MS - 1);
-    const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=${INTERVAL}&startTime=${dayStartUTC}&endTime=${endTime}&limit=500`;
-    const res = await fetch(url);
-    const data = await res.json();
-    data.forEach(d => {
-      const idx = Math.round((d[0] - dayStartUTC) / INTERVAL_MS);
-      if(idx >= 0 && idx < SLOTS){
-        candles[idx] = {
-          open:+d[1], high:+d[2], low:+d[3], close:+d[4], volume:+d[5],
-          isFinal: (d[0] + INTERVAL_MS) <= now
-        };
-      }
+    const endTime = Math.min(now, dayStartUTC + 24*60*60*1000 - 1);
+
+    // reset all candle arrays
+    INTERVALS.forEach(iv => { state[iv.key].candles = new Array(state[iv.key].slots).fill(null); });
+    oneMinCandles = new Array(1440).fill(null);
+
+    const fetches = STREAM_INTERVALS.map(async binInterval => {
+      const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=${binInterval}&startTime=${dayStartUTC}&endTime=${endTime}&limit=1500`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return { binInterval, data };
     });
-    const lastFilled = [...candles].reverse().find(c => c);
-    if(lastFilled) updateHeaderPrice(lastFilled.close);
+    const results = await Promise.all(fetches);
+
+    results.forEach(({binInterval, data}) => {
+      data.forEach(d => {
+        const candle = {
+          open:+d[1], high:+d[2], low:+d[3], close:+d[4], volume:+d[5],
+        };
+        if(binInterval === '1m'){
+          const idx = Math.round((d[0] - dayStartUTC) / 60000);
+          if(idx >= 0 && idx < 1440){
+            candle.isFinal = isLiveDay ? ((d[0] + 60000) <= now) : true;
+            oneMinCandles[idx] = candle;
+          }
+        } else {
+          const iv = INTERVALS.find(x => x.binance === binInterval && x.key === binInterval);
+          if(iv){
+            const s = state[iv.key];
+            const idx = Math.round((d[0] - dayStartUTC) / iv.ms);
+            if(idx >= 0 && idx < s.slots){
+              candle.isFinal = isLiveDay ? ((d[0] + iv.ms) <= now) : true;
+              s.candles[idx] = candle;
+            }
+          }
+        }
+      });
+    });
+
+    rebuildAggregates();
+
+    if(isLiveDay){
+      const s3 = state['3m'];
+      const lastFilled = [...s3.candles].reverse().find(c => c);
+      if(lastFilled) updateHeaderPrice(lastFilled.close);
+    }
   }
 
-  function handleKline(k){
-    const idx = Math.round((k.t - dayStartUTC) / INTERVAL_MS);
-    if(idx < 0 || idx >= SLOTS) return;
-    candles[idx] = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, volume:+k.v, isFinal:k.x };
-    renderAll();
+  // ---- Live kline handling ----
+  function handleKlineNative(ivKey, k){
+    const s = state[ivKey];
+    const idx = Math.round((k.t - dayStartUTC) / s.def.ms);
+    if(idx < 0 || idx >= s.slots) return;
+    s.candles[idx] = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, volume:+k.v, isFinal:k.x };
+  }
+  function handleKline1m(k){
+    const idx = Math.round((k.t - dayStartUTC) / 60000);
+    if(idx < 0 || idx >= 1440) return;
+    oneMinCandles[idx] = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, volume:+k.v, isFinal:k.x };
+    handleKlineNative('1m', k);
+    rebuildAggregates();
   }
   function handleTrade(t){ updateHeaderPrice(+t.p); }
 
-  function connectWS(){
+  function teardownSockets(){
+    clearPoll();
+    reconnectAttempts = 0;
+    Object.values(sockets).forEach(ws => {
+      try{ ws.onclose = null; ws.onerror = null; ws.close(); }catch(e){}
+    });
+    sockets = {};
+  }
+
+  function connectAllWS(){
     setStatus('connecting');
-    const streams = `${SYMBOL}@kline_${INTERVAL}/${SYMBOL}@trade`;
-    ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+    const streams = STREAM_INTERVALS.map(bi => `${SYMBOL}@kline_${bi}`).concat([`${SYMBOL}@trade`]).join('/');
+    const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+    sockets.main = ws;
     ws.onopen = () => { reconnectAttempts = 0; clearPoll(); setStatus('live'); };
     ws.onmessage = (ev) => {
       let msg;
       try { msg = JSON.parse(ev.data); } catch(e){ return; }
       if(!msg || !msg.stream) return;
-      if(msg.stream.endsWith('@kline_' + INTERVAL)) handleKline(msg.data.k);
+      if(msg.stream.endsWith('@kline_1m')) handleKline1m(msg.data.k);
+      else if(msg.stream.endsWith('@kline_3m')) handleKlineNative('3m', msg.data.k);
+      else if(msg.stream.endsWith('@kline_5m')) handleKlineNative('5m', msg.data.k);
       else if(msg.stream.endsWith('@trade')) handleTrade(msg.data);
+      renderAll();
     };
     ws.onclose = () => { setStatus('reconnecting'); scheduleReconnect(); };
     ws.onerror = () => { try{ ws.close(); }catch(e){} };
@@ -503,43 +710,54 @@
     reconnectAttempts++;
     if(reconnectAttempts > 3) startPoll();
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 15000);
-    setTimeout(connectWS, delay);
+    setTimeout(connectAllWS, delay);
   }
   function startPoll(){
     if(pollTimer) return;
     setStatus('polling');
     pollTimer = setInterval(async () => {
       try{
-        const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=${INTERVAL}&limit=2`);
+        const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=1m&limit=2`);
         const data = await res.json();
-        data.forEach(d => handleKline({ t:d[0], o:d[1], h:d[2], l:d[3], c:d[4], v:d[5], x:(d[0]+INTERVAL_MS)<=Date.now() }));
+        data.forEach(d => handleKline1m({ t:d[0], o:d[1], h:d[2], l:d[3], c:d[4], v:d[5], x:(d[0]+60000)<=Date.now() }));
+        const res3 = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=3m&limit=2`);
+        const data3 = await res3.json();
+        data3.forEach(d => handleKlineNative('3m', { t:d[0], o:d[1], h:d[2], l:d[3], c:d[4], v:d[5], x:(d[0]+3*60000)<=Date.now() }));
+        const res5 = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=5m&limit=2`);
+        const data5 = await res5.json();
+        data5.forEach(d => handleKlineNative('5m', { t:d[0], o:d[1], h:d[2], l:d[3], c:d[4], v:d[5], x:(d[0]+5*60000)<=Date.now() }));
         if(data.length) updateHeaderPrice(+data[data.length-1][4]);
+        renderAll();
       }catch(e){}
     }, 3000);
   }
   function clearPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
 
-  // Handle UTC day rollover so the grid resets at 00:00 UTC automatically
+  // Day rollover check (only while live)
   setInterval(async () => {
+    if(!isLiveDay) return;
     const nd = utcDayStartMs();
     const myToken = loadToken;
     if(nd !== dayStartUTC){
-      await fetchHistory();
-      if(myToken !== loadToken) return; // a coin switch happened meanwhile
+      await fetchHistoryAll();
+      if(myToken !== loadToken) return;
       renderAll();
+    } else {
+      renderAll(); // keep "current" markers accurate as minutes tick over
     }
-    else { renderAll(); } // keep "current" box marker accurate as minutes tick over
   }, 15000);
 
   (async function init(){
     try{
-      buildGrid();
+      buildAllGrids();
       setHeaderForSymbol(SYMBOL);
-      renderCoinTabs(''); // show BTC immediately, before full list arrives
-      await fetchHistory();
+      renderCoinTabs('');
+      dayPickerEl.max = todayUTCStr();
+      dayPickerEl.value = viewDateStr;
+      await fetchHistoryAll();
       renderAll();
-      connectWS();
-      loadSymbolList(); // populate full tradable-pair list in the background
+      connectAllWS();
+      loadSymbolList();
     }catch(e){
       setStatus('disconnected');
       console.error('Init failed:', e);
