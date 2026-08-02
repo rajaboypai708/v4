@@ -133,7 +133,7 @@
 
   .heatmap{
     display:grid;
-    gap:1px;
+    gap:0;
     width:100%;
   }
   .col-head{ font:6px/9px monospace; color:var(--muted); text-align:center; }
@@ -142,7 +142,7 @@
     display:flex; align-items:center; justify-content:flex-end; padding-right:2px;
   }
   .cell{
-    border-radius:2px; background:#12181f; cursor:pointer;
+    border-radius:0; background:#12181f; cursor:pointer;
     transition:transform .08s ease, box-shadow .08s ease;
     position:relative;
   }
@@ -311,7 +311,7 @@
             <span class="bc-flat">Flat: <b id="flat-${iv.key}">0</b></span>
           </div>
         </div>
-        <div class="heatmap" id="heatmap-${iv.key}" style="grid-template-columns: 20px repeat(${s.cols}, minmax(${boxPx}px, 1fr)); grid-template-rows: 9px repeat(${ROWS}, ${boxPx}px);"></div>
+        <div class="heatmap" id="heatmap-${iv.key}" style="grid-template-columns: 20px repeat(${s.cols}, 1fr); grid-template-rows: 9px repeat(${ROWS}, 1fr); height:${9 + ROWS*boxPx}px;"></div>
       `;
       gridsWrap.appendChild(panel);
       s.greenEl = panel.querySelector(`#green-${iv.key}`);
@@ -611,6 +611,23 @@
     }
   }
 
+  // ---- Paginated kline fetch: Binance caps each response at 1000 candles,
+  // so a full day of 1m data (1440) needs more than one request. ----
+  async function fetchKlinesPaged(binInterval, start, end){
+    let out = [];
+    let cursor = start;
+    while(cursor <= end){
+      const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=${binInterval}&startTime=${cursor}&endTime=${end}&limit=1000`;
+      const res = await fetch(url);
+      const chunk = await res.json();
+      if(!Array.isArray(chunk) || chunk.length === 0) break;
+      out = out.concat(chunk);
+      if(chunk.length < 1000) break;
+      cursor = chunk[chunk.length-1][0] + 1;
+    }
+    return out;
+  }
+
   // ---- History fetch for all native intervals + 1m (for aggregates) ----
   async function fetchHistoryAll(){
     dayStartUTC = utcDayStartMs(viewDateStr);
@@ -622,9 +639,7 @@
     oneMinCandles = new Array(1440).fill(null);
 
     const fetches = STREAM_INTERVALS.map(async binInterval => {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${SYMBOL.toUpperCase()}&interval=${binInterval}&startTime=${dayStartUTC}&endTime=${endTime}&limit=1500`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const data = await fetchKlinesPaged(binInterval, dayStartUTC, endTime);
       return { binInterval, data };
     });
     const results = await Promise.all(fetches);
