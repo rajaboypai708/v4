@@ -134,7 +134,7 @@
   .heatmap{
     display:grid;
     gap:1px;
-    width:max-content;
+    width:100%;
   }
   .col-head{ font:6px/9px monospace; color:var(--muted); text-align:center; }
   .row-head{
@@ -301,6 +301,7 @@
       const s = state[iv.key];
       const panel = document.createElement('div');
       panel.className = 'grid-panel';
+      const boxPx = gridBoxPx(s.cols);
       panel.innerHTML = `
         <div class="grid-panel-head">
           <div class="grid-panel-title">${iv.label}<span>box grid · ${s.slots} boxes (24 × ${s.cols})</span></div>
@@ -310,7 +311,7 @@
             <span class="bc-flat">Flat: <b id="flat-${iv.key}">0</b></span>
           </div>
         </div>
-        <div class="heatmap" id="heatmap-${iv.key}" style="grid-template-columns: 20px repeat(${s.cols}, ${gridBoxPx(s.cols)}px); grid-template-rows: 9px repeat(${ROWS}, ${gridBoxPx(s.cols)}px);"></div>
+        <div class="heatmap" id="heatmap-${iv.key}" style="grid-template-columns: 20px repeat(${s.cols}, minmax(${boxPx}px, 1fr)); grid-template-rows: 9px repeat(${ROWS}, ${boxPx}px);"></div>
       `;
       gridsWrap.appendChild(panel);
       s.greenEl = panel.querySelector(`#green-${iv.key}`);
@@ -638,6 +639,8 @@
           if(idx >= 0 && idx < 1440){
             candle.isFinal = isLiveDay ? ((d[0] + 60000) <= now) : true;
             oneMinCandles[idx] = candle;
+            const s1 = state['1m'];
+            if(idx < s1.slots) s1.candles[idx] = candle;
           }
         } else {
           const iv = INTERVALS.find(x => x.binance === binInterval && x.key === binInterval);
@@ -672,8 +675,10 @@
   function handleKline1m(k){
     const idx = Math.round((k.t - dayStartUTC) / 60000);
     if(idx < 0 || idx >= 1440) return;
-    oneMinCandles[idx] = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, volume:+k.v, isFinal:k.x };
-    handleKlineNative('1m', k);
+    const candle = { open:+k.o, high:+k.h, low:+k.l, close:+k.c, volume:+k.v, isFinal:k.x };
+    oneMinCandles[idx] = candle;
+    const s1 = state['1m'];
+    if(idx < s1.slots) s1.candles[idx] = candle;
     rebuildAggregates();
   }
   function handleTrade(t){ updateHeaderPrice(+t.p); }
